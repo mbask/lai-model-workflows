@@ -1,8 +1,8 @@
-# Reusable Bayesian Models and Workflows for LAI Estimation
+# Reusable Models and Workflows for LAI Estimation
 
 This repository provides a reference implementation of a model- and workflow-based framework for Leaf Area Index (LAI) estimation in poplar systems. It accompanies the article submitted for publication and is intended as the first contribution to a shared repository of reusable, uncertainty-aware LAI estimation models.
 
-The repository includes validation data, fitted Bayesian models, and fully reproducible R workflows designed to facilitate local recalibration and operational application across other forest contexts.
+The repository includes validation data, fitted models, and fully reproducible R workflows designed to facilitate local recalibration and operational application across other forest contexts.
 
 ---
 
@@ -21,18 +21,16 @@ The primary objectives of this repository are to:
 
 The repository is organized as follows:
 
-  models/
-    AML_PAS.rds        # Fitted AML and PAS models using NDVI and EVI Vegetation Indexes
-
-  data/
-    validation_LAI.csv  # Independent validation dataset
-
-  scripts/
-    validate_PAS.R   # Computation of RMSE, MAE, bias, and coverage on the validation dataset
-
-  docs/
-    AML_PAS_readme.md    # Model structure, prior specification, and validation dataset description
-
+```
+models/
+  AML_PAS.rds        # Fitted AML and PAS models using NDVI and EVI Vegetation Indexes
+data/
+  validation_LAI.csv  # Independent validation dataset
+scripts/
+  validate_PAS.R   # Computation of RMSE, MAE, bias, and coverage on the validation dataset
+docs/
+  AML_PAS_readme.md    # Model structure, prior specification, and validation dataset description
+```
 ---
 
 ## Intended Use and Extension
