@@ -1,4 +1,4 @@
-# AML-PAS models documentation
+# AML-PAS Bayesian models documentation
 
 ## Validation Dataset
 
@@ -125,47 +125,25 @@ Key features:
 ### Priors
 
 Prior distributions were chosen to be weakly to moderately informative
-and are summarized in Table [1](#tab:priors){reference-type="ref"
-reference="tab:priors"}.
+and are summarized in Table [1].
 
-::: {#tab:priors}
-+-------+----------------------+----------------+----------------------+
-| Model | Parameter            | Prior          | Rationale            |
-+:======+:=====================+:===============+:=====================+
-| AML   | Intercept            | Normal(0, 1.5) | Centered LAI         |
-|       +----------------------+----------------+----------------------+
-|       | `index_value`        | Normal(0, 0.7) | Plausible effect     |
-|       |                      |                | size                 |
-|       +----------------------+----------------+----------------------+
-|       | `Age`                | Normal(0, 0.5) | Moderate age effect  |
-|       +----------------------+----------------+----------------------+
-|       | `index_value`        | Normal(0, 0.3) | Strong shrinkage     |
-|       | $\times$ `Age`       |                |                      |
-|       +----------------------+----------------+----------------------+
-|       | `phenoMnth` SD       | Exponential(2) | Few levels           |
-|       +----------------------+----------------+----------------------+
-|       | Residual SD          | Exponential(1) | Weakly informative   |
-|       | ($\sigma$)           |                |                      |
-+-------+----------------------+----------------+----------------------+
-| PAS   | Intercept            | Normal(0, 1.5) | Centered LAI         |
-|       +----------------------+----------------+----------------------+
-|       | `index_value`        | Normal(0, 0.7) | Plausible slope      |
-|       +----------------------+----------------+----------------------+
-|       | Smooth `Age` SD      | Exponential(2) | Penalized smooth     |
-|       +----------------------+----------------+----------------------+
-|       | `phenoMnth` SD       | Exponential(2) | Few levels           |
-|       | (intercept)          |                |                      |
-|       +----------------------+----------------+----------------------+
-|       | `phenoMnth` SD       | Exponential(3) | Strong shrinkage     |
-|       | (`index_value`       |                |                      |
-|       | slope)               |                |                      |
-|       +----------------------+----------------+----------------------+
-|       | Random-effect        | LKJ(3)         | Weak correlations    |
-|       | correlation          |                |                      |
-|       +----------------------+----------------+----------------------+
-|       | Residual SD          | Exponential(1) | Weakly informative   |
-|       | ($\sigma$)           |                |                      |
-+-------+----------------------+----------------+----------------------+
+:::
+| Model |              Parameter              |     Prior      |       Rationale       |
+|-------|-------------------------------------|----------------|-----------------------|
+| AML   | Intercept                           | Normal(0, 1.5) | Centered LAI          |
+|       | index_value`                        | Normal(0, 0.7) | Plausible effect size |
+|       | `Age`                               | Normal(0, 0.5) | Moderate age effect   |
+|       | `index_value` $\times$ `Age`        | Normal(0, 0.3) | Strong shrinkage      |
+|       | `phenoMnth` SD                      | Exponential(2) | Few levels            |
+|       | Residual SD ($\sigma$)              | Exponential(1) | Weakly informative    |
+| PAS   | Intercept                           | Normal(0, 1.5) | Centered LAI          |
+|       | `index_value`                       | Normal(0, 0.7) | Plausible slope       |
+|       | Smooth `Age` SD                     | Exponential(2) | Penalized smooth      |
+|       | `phenoMnth` SD (intercept)          | Exponential(2) | Few levels            |
+|       | `phenoMnth` SD (`index_value`slope) | Exponential(3) | Strong shrinkage      |
+|       | Random-effect correlation           | LKJ(3)         | Weak correlations     |
+|       | Residual SD ($\sigma$)              | Exponential(1) | Weakly informative    |
+
 
 : Prior distributions used for the Bayesian AML and PAS models. All
 predictors and the LAI response were standardized prior to model
@@ -175,9 +153,9 @@ fitting.
 ### EVI-based models
 
 Details of AML and PAS models trained on EVI data are found in
-Table [2](#tab:evi-spec){reference-type="ref" reference="tab:evi-spec"}.
+Table [2].
 
-::: {#tab:evi-spec}
+:::
   ---------------- ----------------- -----------------
                    `fit_evi_l$AML`   `fit_evi_l$PAS`
             Family gaussian          gaussian
@@ -202,10 +180,9 @@ Table [2](#tab:evi-spec){reference-type="ref" reference="tab:evi-spec"}.
 ### NDVI-based models
 
 Details of AML and PAS models trained on EVI data are found in
-Table [3](#tab:ndvi-spec){reference-type="ref"
-reference="tab:ndvi-spec"}.
+Table [3].
 
-::: {#tab:ndvi-spec}
+:::
                    `fit_ndvi_l$AML`   `fit_ndvi_l$PAS`
   ---------------- ------------------ ------------------
              Model fit_ndvi_l\$AML    fit_ndvi_l\$PAS
