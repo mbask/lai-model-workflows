@@ -145,9 +145,9 @@ and are summarized in Table [1].
 |       | Residual SD ($\sigma$)              | Exponential(1) | Weakly informative    |
 
 
-: Prior distributions used for the Bayesian AML and PAS models. All
-predictors and the LAI response were standardized prior to model
-fitting.
+  : Prior distributions used for the Bayesian AML and PAS models. All
+  predictors and the LAI response were standardized prior to model
+  fitting.
 :::
 
 ### EVI-based models
@@ -156,20 +156,19 @@ Details of AML and PAS models trained on EVI data are found in
 Table [2].
 
 :::
-  ---------------- ----------------- -----------------
-                   `fit_evi_l$AML`   `fit_evi_l$PAS`
-            Family gaussian          gaussian
-              Link identity          identity
-         Algorithm sampling          sampling
-            Chains 4                 4
-              Iter 5000              5000
-            Warmup 1500              1500
-                 N 51                51
-    Rhat_max_fixed 1.001184          1.000896
-     ESS_min_fixed 4397.545          5091.830
-       Divergences 0                 0
-    Treedepth_hits 0                 0
-  ---------------- ----------------- -----------------
+|                | `fit_evi_l$AML` | `fit_evi_l$PAS` |
+|----------------|-----------------|-----------------|
+| Family         | gaussian        | gaussian        |
+| Link           | identity        | identity        |
+| Algorithm      | sampling        | sampling        |
+| Chains         | 4               | 4               |
+| Iter           | 5000            | 5000            |
+| Warmup         | 1500            | 1500            |
+| N              | 51              | 51              |
+| Rhat_max_fixed | 1.001184        | 1.000896        |
+| ESS_min_fixed  | 4397.545        | 5091.830        |
+| Divergences    | 0               | 0               |
+| Treedepth_hits | 0               | 0               |
 
   : Model specification and MCMC diagnostics for the EVI-based AML and
   PAS Bayesian models fitted with brms, including sampling settings,
@@ -183,20 +182,21 @@ Details of AML and PAS models trained on EVI data are found in
 Table [3].
 
 :::
-                   `fit_ndvi_l$AML`   `fit_ndvi_l$PAS`
-  ---------------- ------------------ ------------------
-             Model fit_ndvi_l\$AML    fit_ndvi_l\$PAS
-            Family gaussian           gaussian
-              Link identity           identity
-         Algorithm sampling           sampling
-            Chains 4                  4
-              Iter 5000               5000
-            Warmup 1500               1500
-                 N 51                 51
-    Rhat_max_fixed 1.000549           1.000560
-     ESS_min_fixed 4383.170           6189.077
-       Divergences 0                  0
-    Treedepth_hits 0                  0
+
+|                | `fit_ndvi_l$AML` | `fit_ndvi_l$PAS` |
+|----------------|------------------|------------------|
+| Family         | gaussian         | gaussian         |
+| Link           | identity         | identity         |
+| Algorithm      | sampling         | sampling         |
+| Chains         | 4                | 4                |
+| Iter           | 5000             | 5000             |
+| Warmup         | 1500             | 1500             |
+| N              | 51               | 51               |
+| Rhat_max_fixed | 1.0005491.000560 |                  |
+| ESS_min_fixed  | 4383.170         | 6189.077         |
+| Divergences    | 0                | 0                |
+| Treedepth_hits | 0                | 0                |
+
 
   : Model specification and MCMC diagnostics for the NDVI-based AML and
   PAS Bayesian models fitted with brms, including sampling settings,
