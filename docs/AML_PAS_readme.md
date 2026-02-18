@@ -4,29 +4,18 @@
 
 ### Description of the Validation Data
 
-The validation dataset used in this study consists of independent LAI
-measurements not employed during model fitting. LAI observations were
-derived from ground-based daily measurements collected in hybrid poplar
-plantations [@chianucci_monitoring_2025] and aggregated at weekly
-temporal resolution.
+The validation dataset used in this study consists of independent LAI measurements not employed during model fitting. LAI observations were derived from ground-based daily measurements  collected in hybrid poplar plantations (Chianucci, F., Bergante, S., Chiarabaglio, P. M., & Bascietto, M. (2025). Monitoring hybrid poplar plantations using continuous canopy photography: Influence of clone and water status. Annals of Silvicultural Research, 50(2), 52–57. https://doi.org/10.12899/asr-2679) and aggregated at weekly temporal resolution.
 
-All validation data refer to irrigated stands of the *I-214* poplar
-clone with a stand age of five years, ensuring independence from the
-training dataset while maintaining ecological comparability.
+All validation data refer to irrigated stands of the *I-214* poplar clone with a stand age of five years, ensuring independence from the training dataset while maintaining ecological comparability. 
 
-Validation data are provided as a serialized objects file
-`data/validation_dataset.rds` holding a list of two datasets:
+Validation data are provided as a serialized objects file `data/validation_dataset.rds` holding a list of two datasets:
 
     > summary(vld_l)
          Length Class      Mode
     EVI  7      data.table list
     NDVI 7      data.table list
 
-Datasets are stored as a `data.frame/data.table` to ensure efficient
-manipulation and reproducibility. Sample size (N) of the `data.table`s
-is 90 observations. Each row corresponds to a daily plot-level
-observation, combining field-measured LAI, remotely sensed vegetation
-indices.
+Datasets are stored as a `data.frame/data.table` to ensure efficient manipulation and reproducibility. Sample size (N) of the `data.table`s is 90 observations. Each row corresponds to a  daily plot-level observation, combining field-measured LAI, remotely sensed vegetation indices.
 
 The datasets include:
 
