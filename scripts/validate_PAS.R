@@ -17,7 +17,8 @@
 # 0) Load validation data (vld_l) and fitted models + training data (index_l)
 # 1) Scale validation predictors using training-set scaling parameters
 # 2) Generate population-level posterior predictions (no random effects)
-# 3) Unscale predicted LAI back to original units; bind predictions to validation
+# 3) Unscale predicted LAI back to original units;
+#    bind predictions to validation
 # 4) Aggregate to weekly means (observed and predicted)
 # 5) Compute validation metrics globally and by groups; build plots
 #
@@ -29,7 +30,8 @@
 # - Predictions use brms::posterior_epred(..., re_formula = NA) to obtain
 #   population-level expectations (fixed effects only), excluding group-level
 #   random effects. This is appropriate when validating transferability across
-#   plots or when random-effect levels are not meant to be "learned" for new data.
+#   plots or when random-effect levels are not meant to be "learned"
+#   for new data.
 ################################################################################
 
 # ------------------------------------------------------------------------------
@@ -108,7 +110,7 @@ rm(model_frms_l, model_priors_l)
 # ==============================================================================
 
 # ------------------------------------------------------------------------------
-# unscale_maker()
+# unscale_maker() #nolintr
 # ------------------------------------------------------------------------------
 #' Create an unscaling function from training mean and sd
 #'
@@ -146,13 +148,13 @@ unscale_lai <- with(
 )
 
 # ------------------------------------------------------------------------------
-# pred_pop_age()
+# pred_pop_age() #nolintr
 # ------------------------------------------------------------------------------
 #' Posterior expected predictions for new data (population-level)
 #'
 #' @param fit A brmsfit object.
-#' @param idx_label Character. Label for the vegetation index (e.g., "NDVI", "EVI").
-#' @param age_grd_dt data.table (or data.frame). Newdata used for prediction.
+#' @param idx_label Character. Label for the vegetation index (eg,"NDVI", "EVI")
+#' @param age_grd_dt data.table (or data.frame). Newdata used for prediction
 #' @return data.table with columns:
 #'   - Index: idx_label
 #'   - Age: newdata$Age (as provided; typically standardized here)
@@ -181,11 +183,11 @@ pred_pop_age <- function(fit, idx_label, age_grd_dt) {
 }
 
 # ------------------------------------------------------------------------------
-# val_metrics_dt()
+# val_metrics_dt() #nolintr
 # ------------------------------------------------------------------------------
 #' Compute validation metrics for predicted LAI vs observed LAI
 #'
-#' @param dt data.table/data.frame containing observed and predicted LAI columns.
+#' @param dt data.table/data.frame containing observed and predicted LAI cols
 #' @param obs Character. Column name of observed LAI (real units).
 #' @param pred Character. Column name of predicted LAI (real units).
 #' @param low Character. Column name of lower credible interval (same units).
@@ -232,28 +234,32 @@ val_metrics_dt <- function(
   )]
 
   # Global summary metrics
-  out <- dt[, .(
-    n = .N,
-    RMSE = sqrt(mean(serr)),
-    MAE  = mean(aerr),
-    Bias = mean(err),
-    MedAE = median(aerr),
+  out <- dt[
+    ,
+    list(
+      n = .N,
+      RMSE = get("serr")  |> mean() |> sqrt(),
+      MAE  = get("aerr")  |> mean(),
+      Bias = get("err")   |> mean(),
+      MedAE = get("aerr") |> median(),
 
-    # Validation R^2 (SSE/SST). Interpretable as fraction of variance explained.
-    # Can be negative if predictions are worse than using mean(obs).
-    R2_val = {
-      y    <- get(obs)
-      yhat <- get(pred)
-      1 - sum((y - yhat)^2) / sum((y - mean(y))^2)
-    },
+      # Validation R^2 (SSE/SST). Interpretable as fraction
+      # of variance explained.
+      # Can be negative if predictions are worse than using mean(obs).
+      R2_val = {
+        y    <- get(obs)
+        yhat <- get(pred)
+        1 - sum((y - yhat)^2) / sum((y - mean(y))^2)
+      },
 
-    # Empirical coverage of nominal 95% credible interval
-    Coverage95 = mean(in_ci),
+      # Empirical coverage of nominal 95% credible interval
+      Coverage95 = get("in_ci") |> mean(),
 
-    # Predictive interval width summaries
-    Mean_IW   = mean(iw),
-    Median_IW = median(iw)
-  )]
+      # Predictive interval width summaries
+      Mean_IW   = get("iw") |> mean(),
+      Median_IW = get("iw") |> median()
+    )
+  ]
 
   # Error distribution quantiles (useful for asymmetric bias / tail behavior)
   out[, `:=`(
@@ -297,8 +303,7 @@ stopifnot(
 # Apply scaling in-place to each validation data.table inside vld_l.
 # We use data.table by-reference assignment for efficiency.
 #
-# For each column in scaled_cols:
-#   z = (x - mu) / sigma
+# For each column in scaled_cols: z = (x - mu) / sigma
 lapply(
   vld_l,
   function(vld_dt, cols) {
@@ -323,7 +328,8 @@ lapply(
 # ==============================================================================
 
 # Generate posterior expected predictions for the PAS models (selected).
-# Output is in the same scale as the brms response used at fit time (often scaled).
+# Output is in the same scale as the brms response used at fit time
+# (often scaled).
 pred_l <- list(
   ndvi = pred_pop_age(fit_ndvi_l$PAS, "NDVI", vld_l$NDVI),
   evi  = pred_pop_age(fit_evi_l$PAS,  "EVI",  vld_l$EVI)
@@ -382,42 +388,53 @@ res_evi  <- val_metrics_dt(vld_fit_l$EVI)
 res_ndvi <- val_metrics_dt(vld_fit_l$NDVI)
 
 # Grouped metrics:
-# by phenological month (seasonal/phenological dependence)
-metrics_by_mnth_evi <- res_evi$dt[, .(
+# by irrigation status (irrigated/non irrigated)
+# AM003: non irrigated plot
+# AM004: irrigated plot
+# and phenological month (seasonal/phenological dependence)
+res_evi$dt[, .(
   n = .N,
   RMSE = sqrt(mean(serr)),
   MAE  = mean(aerr),
   Bias = mean(err),
   Coverage95 = mean(in_ci),
-  Mean_IW = mean(iw)
-), by = .(phenoMnth)]
+  Mean_IW    = mean(iw)
+), by = .(plotID, phenoMnth)]
 
-metrics_by_mnth_ndvi <- res_ndvi$dt[, .(
+res_ndvi$dt[, .(
   n = .N,
   RMSE = sqrt(mean(serr)),
   MAE  = mean(aerr),
   Bias = mean(err),
   Coverage95 = mean(in_ci),
-  Mean_IW = mean(iw)
-), by = .(phenoMnth)]
+  Mean_IW    = mean(iw)
+), by = .(plotID, phenoMnth)]
 
 # Combined overall table for reporting (e.g., manuscript Table 5)
-metrics_all <- rbindlist(
+(data.table::rbindlist(
   list(
     cbind(Index = "EVI",  res_evi$metrics),
     cbind(Index = "NDVI", res_ndvi$metrics)
   ),
   use.names = TRUE,
   fill      = TRUE
-)
+))
 
-# Coverage by phenological month (diagnostic of uncertainty calibration)
-cov_ndvi_dt <- res_ndvi$dt[, .(Coverage = mean(in_ci)), by = phenoMnth]
-cov_evi_dt  <- res_evi$dt[,  .(Coverage = mean(in_ci)), by = phenoMnth]
+# Coverage by irrigation status and
+# phenological month (diagnostic of uncertainty calibration)
+cov_ndvi_dt <- res_ndvi$dt[
+  ,
+  .(Coverage = mean(in_ci)), by = c("plotID", "phenoMnth")
+]
+cov_evi_dt  <- res_evi$dt[
+  ,
+  .(Coverage = mean(in_ci)), by = c("plotID", "phenoMnth")
+]
 
 
 # ==============================================================================
-# %% Final plot — Agreement scatter + coverage by month
+# %% Final plot — Agreement scatter + coverage
+#    by month (color) and irrigation status (shape)
 # ==============================================================================
 
 # Panel A: observed vs predicted (NDVI)
@@ -456,7 +473,7 @@ plots_l <- within(
     # Panel B: coverage by month (NDVI)
     cv_ndvi <- ggplot(
       cov_ndvi_dt,
-      aes(phenoMnth, Coverage, color = phenoMnth)
+      aes(phenoMnth, Coverage, color = phenoMnth, shape = plotID)
     ) +
       geom_point(size = 3, show.legend = FALSE) +
       geom_hline(yintercept = 0.95, linetype = "dotted") +
@@ -483,41 +500,6 @@ with(
 
 
 
-# > sessionInfo()
-# R version 4.5.2 (2025-10-31)
-# Platform: aarch64-apple-darwin20
-# Running under: macOS Tahoe 26.2
-
-# Matrix products: default
-# BLAS:   /System/Library/Frameworks/Accelerate.framework/Versions/A/Frameworks/vecLib.framework/Versions/A/libBLAS.dylib 
-# LAPACK: /Library/Frameworks/R.framework/Versions/4.5-arm64/Resources/lib/libRlapack.dylib;  LAPACK version 3.12.1
-
-# locale:
-# [1] C.UTF-8/C.UTF-8/C.UTF-8/C/C.UTF-8/C.UTF-8
-
-# time zone: Europe/Rome
-# tzcode source: internal
-
-# attached base packages:
-# [1] stats     graphics  grDevices utils     datasets  methods   base     
-
-# other attached packages:
-# [1] patchwork_1.3.2   ggplot2_4.0.1     brms_2.23.0       Rcpp_1.1.0       
-# [5] data.table_1.18.0
-
-# loaded via a namespace (and not attached):
-#  [1] Matrix_1.7-4          bayesplot_1.15.0      gtable_0.3.6         
-#  [4] jsonlite_2.0.0        dplyr_1.1.4           compiler_4.5.2       
-#  [7] tidyselect_1.2.1      stringr_1.6.0         parallel_4.5.2       
-# [10] scales_1.4.0          lattice_0.22-7        coda_0.19-4.1        
-# [13] R6_2.6.1              Brobdingnag_1.2-9     generics_0.1.4       
-# [16] distributional_0.6.0  backports_1.5.0       checkmate_2.3.3      
-# [19] tibble_3.3.0          pillar_1.11.1         RColorBrewer_1.1-3   
-# [22] posterior_1.6.1       rlang_1.1.6           stringi_1.8.7        
-# [25] S7_0.2.1              RcppParallel_5.1.11-1 cli_3.6.5            
-# [28] withr_3.0.2           magrittr_2.0.4        rstantools_2.6.0     
-# [31] grid_4.5.2            mvtnorm_1.3-3         lifecycle_1.0.4      
-# [34] nlme_3.1-168          vctrs_0.6.5           tensorA_0.36.2.1     
-# [37] glue_1.8.0            farver_2.1.2          bridgesampling_1.2-1 
-# [40] abind_1.4-8           matrixStats_1.5.0     tools_4.5.2          
-# [43] loo_2.9.0             pkgconfig_2.0.3      
+sessionInfo() |>
+  capture.output() |>
+  writeLines(text = _, "scripts/sessionInfo.txt")
