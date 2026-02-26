@@ -444,12 +444,12 @@ cov_evi_dt  <- res_evi$dt[
 plots_l <- list(
   scatter_ndvi = ggplot(
     res_ndvi$dt,
-    aes(x = LAI_r, y = LAI_mean, color = phenoMnth)
+    aes(x = LAI_r, y = LAI_mean, color = plotID)
   ) +
     geom_point(size = 3, show.legend = FALSE) +
     geom_abline(slope = 1, intercept = 0, linetype = "dashed") +
-    scale_y_continuous(limits = c(0, 1.5)) +
-    scale_x_continuous(limits = c(0, 1.5)) +
+    scale_y_continuous(limits = c(0, 3.5)) +
+    scale_x_continuous(limits = c(0, 3.5)) +
     coord_equal() +
     labs(
       title = "A) NDVI Model–data agreement",
@@ -473,7 +473,7 @@ plots_l <- within(
     # Panel B: coverage by month (NDVI)
     cv_ndvi <- ggplot(
       cov_ndvi_dt,
-      aes(phenoMnth, Coverage, color = phenoMnth, shape = plotID)
+      aes(phenoMnth, Coverage, color = plotID)
     ) +
       geom_point(size = 3, show.legend = FALSE) +
       geom_hline(yintercept = 0.95, linetype = "dotted") +
