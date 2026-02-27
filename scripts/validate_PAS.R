@@ -82,7 +82,7 @@ cfg_l <- list(
 #   * plotID, week, phenoMnth, Age, index_value, LAI_r
 #
 # The dataset must be consistent with the predictors used in the fitted models.
-vld_l <- readRDS(paste0(cfg_l$rsfd_data_dir, "validation_LAI.rds"))
+vld_l <- readRDS(paste0(cfg_l$rsfd_data_dir, "PAS_validation_dataset.rds"))
 
 # ------------------------------------------------------------------------------
 # Load fitted models and training dataset
@@ -359,24 +359,6 @@ vld_fit_l <- Map(
   pred_l,
   MoreArgs = list(cols = cfg_l$lai_cols)
 )
-
-# Aggregate to weekly means per plot and phenological month.
-# This reduces day-level noise and aligns with the intended temporal support
-# of the validation (weekly LAI summaries).
-vld_fit_l <- lapply(
-  vld_fit_l,
-  \(dt, cols, id) {
-    dt[
-      ,
-      lapply(.SD, mean),
-      by = c(id, "week", "phenoMnth"),
-      .SDcols = cols
-    ]
-  },
-  cols = c(cfg_l$lai_obs, cfg_l$lai_cols),
-  id   = cfg_l$plot_id
-) |>
-  invisible()
 
 
 # ==============================================================================
