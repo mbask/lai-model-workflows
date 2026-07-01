@@ -11,11 +11,12 @@ All validation data refer to irrigated stands of the *I-214* poplar clone with a
 Validation data are provided as a serialized objects file `data/validation_dataset.rds` holding a list of two datasets:
 
     > summary(vld_l)
-         Length Class      Mode
-    EVI  7      data.table list
-    NDVI 7      data.table list
+          Length Class      Mode
+     EVI  6      data.table list
+     LAI  6      data.table list
+     NDVI 6      data.table list
 
-Datasets are stored as a `data.frame/data.table` to ensure efficient manipulation and reproducibility. Sample size (N) of the `data.table`s is 90 observations. Each row corresponds to a  daily plot-level observation, combining field-measured LAI, remotely sensed vegetation indices.
+Datasets are stored as a `data.frame/data.table` to ensure efficient manipulation and reproducibility. Sample size (N) of the `data.table`s is 32 observations. Each row corresponds to a daily plot-level observation, combining field-measured LAI, remotely sensed vegetation indices.
 
 The datasets include:
 
@@ -24,11 +25,7 @@ The datasets include:
 
 - Leaf Area Index observations (`LAI_r`, numeric class);
 
-- Corresponding vegetation indices values (`index_value`, scaled in
-  0--10,000 range, numeric class);
-
-- Type of vegetation index (`index`, coded as factor: \"NDVI\",
-  \"EVI\");
+- Corresponding indices values (`index_value`, scaled x10000, numeric class);
 
 - Stand age `i.e.` years since establishment (`Age`, numeric class);
 
@@ -41,23 +38,20 @@ The validation dataset can be loaded in `R` environment as:
 
       vld_l <- readRDS("data/validation_dataset.rds")
 
-The `scripts/validate_PAS.R` script provides a fully reproducible workflow to
-validate the VI-based Bayesian LAI models reported in the manuscript and
-to reproduce Figure 4. It loads the independent validation dataset
+The `scripts/validate_PAS.R` script provides a fully reproducible workflow to validate the Index-based Bayesian LAI models reported in the manuscript and to reproduce Figure 4. It loads the independent validation dataset
 (`validation_dataset.rds`) and the fitted `brms` model objects and
 training data (`model.rds`). Because models were trained on standardized
 predictors and a standardized LAI response, the script (i) rescales
 validation predictors (Age and vegetation index values) using the
 training-set centering and scaling parameters, and (ii) back-transforms
-posterior predictions to LAI units. For each vegetation index (NDVI,
-EVI), population-level posterior expected predictions are generated via
-`brms::posterior_epred(..., re_formula = NA)`, thereby excluding
+posterior predictions to LAI units. For each index (NDVI,
+EVI, LAI), population-level posterior expected predictions are generated via `brms::posterior_epred(..., re_formula = NA)`, thereby excluding
 group-level effects to assess transferability to new plots. Predicted
 summaries (posterior mean and 95% credible interval) are then joined to
 the validation observations and aggregated to weekly means. Finally, the
 script computes global and phenology-stratified validation metrics
 (RMSE, MAE, bias, empirical 95% coverage, and interval width) and
-produces the multi-panel agreement/coverage plots composing Figure 4.
+produces the multi-panel agreement/coverage plots composing Figure 5.
 
 
 ## Model Specifications
@@ -71,14 +65,11 @@ transitions). All posterior summaries (fixed effects, smooth terms,
 random effects) and posterior predictive quantities reported here were
 derived directly from this object to ensure full reproducibility.
 
-All 4 models (AML, PAS models based on EVI and NDVI VI datasets) are
-provided as serialized `brmsfit` objects, enabling direct reuse for
-inspection or comparison, in file `data/model.rds`.
+All 6 models (AML, PAS models based on EVI, NDVI, and LAI indexes datasets) are provided as serialized `brmsfit` objects, enabling direct reuse for inspection or comparison, in file `data/model.rds`.
 
-The Age--Monotonic Logistic (AML) models describe the ontogenetic
+The Age-Moderated Linear (AML) models describe the ontogenetic
 trajectory of LAI as a function of stand age using a sigmoidal
-formulation. Separate AML models were fitted for NDVI- and EVI-based
-predictors.
+formulation. Separate AML models were fitted for NDVI-, EVI-, and LAI-based remote sensing predictors.
 
 Model structure:
 
@@ -154,8 +145,8 @@ Table [2].
 | Iter           | 5000            | 5000            |
 | Warmup         | 1500            | 1500            |
 | N              | 51              | 51              |
-| Rhat_max_fixed | 1.001184        | 1.000896        |
-| ESS_min_fixed  | 4397.545        | 5091.830        |
+| Rhat_max_fixed | 1.000332        | 1.000332        |
+| ESS_min_fixed  | 7114            | 8179            |
 | Divergences    | 0               | 0               |
 | Treedepth_hits | 0               | 0               |
 
@@ -167,7 +158,7 @@ Table [2].
 
 ### NDVI-based models
 
-Details of AML and PAS models trained on EVI data are found in
+Details of AML and PAS models trained on NDVI data are found in
 Table [3].
 
 :::
@@ -181,13 +172,41 @@ Table [3].
 | Iter           | 5000             | 5000             |
 | Warmup         | 1500             | 1500             |
 | N              | 51               | 51               |
-| Rhat_max_fixed | 1.0005491.000560 |                  |
-| ESS_min_fixed  | 4383.170         | 6189.077         |
+| Rhat_max_fixed | 1.00083          | 1.00139          |
+| ESS_min_fixed  | 6526             | 7424             |
 | Divergences    | 0                | 0                |
 | Treedepth_hits | 0                | 0                |
 
 
   : Model specification and MCMC diagnostics for the NDVI-based AML and
+  PAS Bayesian models fitted with brms, including sampling settings,
+  sample size, and convergence indicators (R-hat, ESS, and NUTS
+  diagnostics).
+:::
+
+### LAI-based models
+
+Details of AML and PAS models trained on remote sensing LAI data are found in
+Table [4].
+
+:::
+
+|                | `fit_lai_l$AML` | `fit_lai_l$PAS` |
+|----------------|-----------------|-----------------|
+| Family         | gaussian        | gaussian        |
+| Link           | identity        | identity        |
+| Algorithm      | sampling        | sampling        |
+| Chains         | 4               | 4               |
+| Iter           | 5000            | 5000            |
+| Warmup         | 1500            | 1500            |
+| N              | 51              | 51              |
+| Rhat_max_fixed | 1.000997        | 1.000491        |
+| ESS_min_fixed  | 5476            | 5687            |
+| Divergences    | 0               | 0               |
+| Treedepth_hits | 0               | 0               |
+
+
+  : Model specification and MCMC diagnostics for the remote sensing LAI-based AML and
   PAS Bayesian models fitted with brms, including sampling settings,
   sample size, and convergence indicators (R-hat, ESS, and NUTS
   diagnostics).

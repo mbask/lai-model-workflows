@@ -23,13 +23,13 @@ The repository is organized as follows:
 
 ```
 models/
-  AML_PAS.rds        # Fitted AML and PAS models using NDVI and EVI Vegetation Indexes
+  AML_PAS.rds        # Fitted AML and PAS models using NDVI and EVI Vegetation Indexes, and LAI from remote sensing
 data/
-  validation_LAI.csv  # Independent validation dataset
+  PAS_validation_dataset.rds  # Independent validation dataset
 scripts/
   validate_PAS.R   # Computation of RMSE, MAE, bias, and coverage on the validation dataset
 docs/
-  AML_PAS_readme.md    # Model structure, prior specification, and validation dataset description
+  AML_PAS_readme.md    # Description of model structure, prior specification, and validation dataset
 ```
 ---
 

@@ -3,14 +3,14 @@
 #
 # TO BE COMPLETED after paper acceptance
 # Supplementary material to paper:
-# Bascietto M., et al "Canopy Closure breakpoints and Vegetation Index
-# Saturation for Leaf Area Index Estimation across Stand Age and Phenology
-# in Poplar Plantations"
+# Bascietto M., et al "Age-dependent canopy development reveals canopy-closure
+# transitions in short-rotation poplar plantations"
 #
 # Purpose
 # -------
 # This script validates fitted Bayesian models (brms) for LAI prediction using
-# independent LAI observations and corresponding vegetation indices (NDVI, EVI).
+# independent LAI observations and corresponding vegetation indices (NDVI,
+# EVI, LAI), and build paper figure S3.
 #
 # Workflow summary
 # ----------------
@@ -77,12 +77,17 @@ cfg_l <- list(
 # Load validation dataset (independent data)
 # ------------------------------------------------------------------------------
 # Expected structure:
-# - vld_l: named list with elements "NDVI" and "EVI"
+# - vld_l: named list with elements "NDVI", "EVI", and "LAI"
 #   Each element is a data.table including at least:
 #   * plotID, week, phenoMnth, Age, index_value, LAI_r
 #
 # The dataset must be consistent with the predictors used in the fitted models.
-vld_l <- readRDS(paste0(cfg_l$rsfd_data_dir, "PAS_validation_dataset.rds"))
+vld_l <- readRDS(
+  file.path(
+    cfg_l$rsfd_data_dir,
+    "PAS_validation_dataset.rds"
+  )
+)
 
 # ------------------------------------------------------------------------------
 # Load fitted models and training dataset
@@ -90,14 +95,16 @@ vld_l <- readRDS(paste0(cfg_l$rsfd_data_dir, "PAS_validation_dataset.rds"))
 # Expected objects in "model.rds" (loaded into global environment):
 # - fit_evi_l: list(AML = <brmsfit>, PAS = <brmsfit>)
 # - fit_ndvi_l: list(AML = <brmsfit>, PAS = <brmsfit>)
-# - index_l: list(NDVI = <training dt>, EVI = <training dt>)
+# - fit_lairs_l: list(AML = <brmsfit>, PAS = <brmsfit>)
+# - index_l: list(NDVI = <training dt>, EVI = <training dt>,
+#     LAIrs = <training dt>
 # - model_frms_l, model_priors_l: (not needed for validation here)
 #
 # NOTE: list2env() intentionally places objects in .GlobalEnv to keep
 # this script "single-file runnable" for supplement materials.
 # In a package/project context,
 # prefer explicit assignment to avoid side effects.
-paste0(cfg_l$models_dir, "AML_PAS.rds") |>
+file.path(cfg_l$models_dir, "AML_PAS.rds") |>
   readRDS() |>
   list2env(envir = .GlobalEnv)
 
@@ -332,7 +339,8 @@ lapply(
 # (often scaled).
 pred_l <- list(
   ndvi = pred_pop_age(fit_ndvi_l$PAS, "NDVI", vld_l$NDVI),
-  evi  = pred_pop_age(fit_evi_l$PAS,  "EVI",  vld_l$EVI)
+  evi  = pred_pop_age(fit_evi_l$PAS,  "EVI",  vld_l$EVI),
+  lai  = pred_pop_age(fit_lairs_l$PAS,  "LAIrs",  vld_l$LAI)
 )
 
 
@@ -368,6 +376,7 @@ vld_fit_l <- Map(
 # Overall (global) metrics
 res_evi  <- val_metrics_dt(vld_fit_l$EVI)
 res_ndvi <- val_metrics_dt(vld_fit_l$NDVI)
+res_lai  <- val_metrics_dt(vld_fit_l$LAI)
 
 # Grouped metrics:
 # by irrigation status (irrigated/non irrigated)
@@ -392,11 +401,21 @@ res_ndvi$dt[, .(
   Mean_IW    = mean(iw)
 ), by = .(plotID, phenoMnth)]
 
+res_lai$dt[, .(
+  n = .N,
+  RMSE = sqrt(mean(serr)),
+  MAE  = mean(aerr),
+  Bias = mean(err),
+  Coverage95 = mean(in_ci),
+  Mean_IW    = mean(iw)
+), by = .(plotID, phenoMnth)]
+
 # Combined overall table for reporting (e.g., manuscript Table 5)
 (data.table::rbindlist(
   list(
-    cbind(Index = "EVI",  res_evi$metrics),
-    cbind(Index = "NDVI", res_ndvi$metrics)
+    cbind(Index = "EVI",   res_evi$metrics),
+    cbind(Index = "NDVI",  res_ndvi$metrics),
+    cbind(Index = "LAIrs", res_lai$metrics)
   ),
   use.names = TRUE,
   fill      = TRUE
@@ -409,6 +428,10 @@ cov_ndvi_dt <- res_ndvi$dt[
   .(Coverage = mean(in_ci)), by = c("plotID", "phenoMnth")
 ]
 cov_evi_dt  <- res_evi$dt[
+  ,
+  .(Coverage = mean(in_ci)), by = c("plotID", "phenoMnth")
+]
+cov_lai_dt  <- res_lai$dt[
   ,
   .(Coverage = mean(in_ci)), by = c("plotID", "phenoMnth")
 ]
@@ -452,6 +475,11 @@ plots_l <- within(
       res_evi$dt +
       labs(title = "C) EVI Model–data agreement")
 
+    # Panel E: observed vs predicted (LAI)
+    scatter_lai <- scatter_ndvi +
+      res_evi$dt +
+      labs(title = "E) LAI Model–data agreement")
+
     # Panel B: coverage by month (NDVI)
     cv_ndvi <- ggplot(
       cov_ndvi_dt,
@@ -471,13 +499,19 @@ plots_l <- within(
     cv_evi <- cv_ndvi +
       cov_evi_dt +
       labs(title = "D) EVI Coverage (95%)")
+
+    # Panel F: coverage by month (EVI)
+    cv_lai <- cv_ndvi +
+      cov_lai_dt +
+      labs(title = "F) LAI Coverage (95%)")
+
   }
 )
 
 # Assemble final multi-panel figure (2x2)
 with(
   plots_l,
-  (scatter_ndvi / cv_ndvi) | (scatter_evi / cv_evi)
+  (scatter_ndvi / cv_ndvi) | (scatter_evi / cv_evi) | (scatter_lai / cv_lai)
 )
 
 
